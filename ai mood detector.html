@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emotion-Based Songs Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4c3ecd, #d5265d);
+      color: #fff;
+    }
+
+    .container {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      margin: 20px auto;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      transition: background 0.8s ease;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      object-fit: cover;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #a95367;
+      color: rgb(0, 0, 0);
+      font-size: 16px;
+    }
+
+    ul.playlist {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0 0;
+    }
+
+    ul.playlist li {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .emotion {
+      font-size: 50px;
+      margin-top: 15px;
+    }
+
+    a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .search-bar {
+      margin-top: 20px;
+    }
+
+    .search-bar input {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      width: 70%;
+      font-size: 14px;
+    }
+    .loginPage {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+}
+
+   .loginPage input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+}
+
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+
+     <!-- Login Form -->
+<div id="loginPage">
+    <h2>🔐 Login to Continue</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+  
+  <!-- App UI -->
+  <div id="app" style="display: none;">
+    <div class="container" id="emotionContainer">
+      <h1>🎭 Emotion-Based Songs Generator 🎶</h1>
+      <button onclick="logout()">🚪 Logout</button>
+      <!-- (the rest of your app content stays here...) -->
+
+
+  <div class="container" id="emotionContainer">
+    <h1>🎭 Emotion-Based Songs Generator 🎶</h1>
+    <video id="video" autoplay muted playsinline></video>
+    <button id="detectEmotion">Detect Emotion 🎭</button>
+    <button id="startVoice">🎙️ Voice Command</button>
+    <div class="search-bar">
+        <input type="text" id="moodInput" placeholder="Enter a mood (e.g. happy, sad)" />
+        <button onclick="searchSongsByMood()">Search Songs 🎵</button>
+      </div>
+
+      <div id="emotionDisplay" class="emotion">Emotion: </div>
+      <ul class="playlist" id="playlist"></ul>
+    </div>
+
+    <h3>🕓 Recently Played</h3>
+    <ul class="playlist" id="historyList"></ul>
+  
+
+  <script>
+    const emotionGradients = {
+      happy: "linear-gradient(135deg, #f6d365, #fda085)",
+      sad: "linear-gradient(135deg, #3a6073, #16222a)",
+      angry: "linear-gradient(135deg, #bdc3c7, #2c3e50)",
+      fearful: "linear-gradient(135deg, #373b44, #4286f4)",
+      disgusted: "linear-gradient(135deg, #232526, #414345)",
+      surprised: "linear-gradient(135deg, #ff6a00, #ee0979)",
+      neutral: "linear-gradient(135deg, #a1c4fd, #c2e9fb)"
+    };
+
+    const songsByEmotion = {
+      happy: [
+        { title: "wavy", artist: "karan aujla", url: "https://www.youtube.com/watch?v=XTp5jaRU3Ws" },
+        { title: "softly", artist: "karan aujla", url: "https://www.youtube.com/watch?v=cWMxCE2HTag" },
+        { title: "G.O.A.T", artist: "diljit dosanjh", url: "https://www.youtube.com/watch?v=cl0a3i2wFcc" },
+        { title: "Moon rise", artist: "Guru randhawa", url: "https://www.youtube.com/watch?v=SCleHNho-qc" },
+        { title: "players", artist: "badshah", url: "https://www.youtube.com/watch?v=CeFQO9MQNqs" },
+        { title: "Lut put gya", artist: "jubin nautiyal", url: "https://www.youtube.com/watch?v=tOo5Rn8dRaA" }
+      ],
+      sad: [
+        { title: "jhol", artist: "Passenger", url: "https://www.youtube.com/watch?v=-2RAq5o5pwc" },
+        { title: "pal pal", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=AbkEmIgJMcU" },
+        { title: "afsos", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=2FhgKp_lfJQ" },
+        { title: "Jag suna suna laage", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=5VP-tau_XfU" },
+        { title: "Give me some sunshine", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=lbCRtrrMvSw" },
+        { title: "Love is gone", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=hCrtcVDgCGw" }
+      ],
+      angry: [
+        { title: "Rolling in the Deep", artist: "Adele", url: "https://www.youtube.com/watch?v=rYEDA3JcQqw" },
+        { title: "Before He Cheats", artist: "Carrie Underwood", url: "https://www.youtube.com/watch?v=WaSy8yy-mr8" }
+      ],
+      fearful: [
+        { title: "Breathe Me", artist: "Sia", url: "https://www.youtube.com/watch?v=SFGvmrJ5rjM" },
+        { title: "Stressed Out", artist: "Twenty One Pilots", url: "https://www.youtube.com/watch?v=pXRviuL6vMY" }
+      ],
+      disgusted: [
+        { title: "Back to Black", artist: "Amy Winehouse", url: "https://www.youtube.com/watch?v=TJAfLE39ZZ8" },
+        { title: "The A Team", artist: "Ed Sheeran", url: "https://www.youtube.com/watch?v=UAWcs5H-qgQ" }
+      ],
+      surprised: [
+        { title: "Don't Stop Me Now", artist: "Queen", url: "https://www.youtube.com/watch?v=HgzGwKwLmgM" },
+        { title: "Firework", artist: "Katy Perry", url: "https://www.youtube.com/watch?v=QGJuMBdaqIw" }
+      ],
+      neutral: [
+        { title: "Clair de Lune", artist: "Debussy", url: "https://www.youtube.com/watch?v=CvFH_6DNRCY" },
+        { title: "River Flows in You", artist: "Yiruma", url: "https://www.youtube.com/watch?v=7maJOI3QMu0" }
+      ]
+    };
+
+    async function startCamera() {
+      const video = document.getElementById("video");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (error) {
+        alert("Camera access denied.");
+        console.error(error);
+      }
+    }
+
+    async function loadModels() {
+      const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+    }
+
+    async function detectEmotion() {
+      const video = document.getElementById("video");
+
+      const result = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceExpressions();
+
+      if (!result) {
+        alert("No face detected.");
+        return;
+      }
+
+      const expressions = result.expressions;
+      const maxEmotion = Object.keys(expressions).reduce((a, b) =>
+        expressions[a] > expressions[b] ? a : b
+      );
+
+      displayEmotion(maxEmotion);
+      generatePlaylist(maxEmotion);
+    }
+
+    function displayEmotion(emotion) {
+      document.getElementById("emotionDisplay").textContent = `Emotion: ${emotion}`;
+
+      const gradient = emotionGradients[emotion];
+      if (gradient) {
+        document.getElementById("emotionContainer").style.background = gradient;
+      }
+    }
+
+    function generatePlaylist(emotion) {
+      const playlistEl = document.getElementById("playlist");
+      playlistEl.innerHTML = '';
+
+      const playlist = songsByEmotion[emotion] || [];
+      if (playlist.length === 0) {
+        playlistEl.innerHTML = '<li>No songs available for this emotion.</li>';
+        return;
+      }
+
+      playlist.forEach(song => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${song.url}" target="_blank"><strong>${song.title}</strong> - ${song.artist}</a>`;
+        playlistEl.appendChild(li);
+      });
+    }
+
+    function searchSongsByMood() {
+      const mood = document.getElementById("moodInput").value.toLowerCase().trim();
+      if (!mood || !songsByEmotion[mood]) {
+        document.getElementById("playlist").innerHTML = '<li>No songs found for that mood.</li>';
+        return;
+      }
+
+      displayEmotion(mood);
+      generatePlaylist(mood);
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'en-US';
+recognition.continuous = false;
+
+recognition.onresult = (event) => {
+  const transcript = event.results[0][0].transcript.toLowerCase();
+  document.getElementById("moodInput").value = transcript;
+  searchSongsByMood();
+};
+
+document.getElementById("startVoice").addEventListener("click", () => {
+  recognition.start();
+});
+
+const history = [];
+
+function generatePlaylist(emotion) {
+  const playlistEl = document.getElementById("playlist");
+  const historyEl = document.getElementById("historyList");
+  playlistEl.innerHTML = '';
+
+  const playlist = songsByEmotion[emotion] || [];
+  if (playlist.length === 0) {
+    playlistEl.innerHTML = '<li>No songs available for this emotion.</li>';
+    return;
+  }
+
+  playlist.forEach(song => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="${song.url}" target="_blank"><strong>${song.title}</strong> - ${song.artist}</a>`;
+    playlistEl.appendChild(li);
+
+    // Add to history
+    history.unshift(song);
+    if (history.length > 5) history.pop();
+
+    updateHistory();
+  });
+}
+
+function updateHistory() {
+  const historyEl = document.getElementById("historyList");
+  historyEl.innerHTML = '';
+  history.forEach(song => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="${song.url}" target="_blank"><strong>${song.title}</strong> - ${song.artist}</a>`;
+    historyEl.appendChild(li);
+  });
+}
+
+function recommendAnotherMood(currentMood) {
+  const moods = Object.keys(songsByEmotion).filter(mood => mood !== currentMood);
+  const randomMood = moods[Math.floor(Math.random() * moods.length)];
+  const recommendation = songsByEmotion[randomMood][0];
+
+  const recommendationEl = document.createElement('div');
+  recommendationEl.innerHTML = `<p>🎧 You might also enjoy something <strong>${randomMood}</strong>: 
+    <a href="${recommendation.url}" target="_blank">${recommendation.title} - ${recommendation.artist}</a></p>`;
+  
+  document.getElementById("emotionContainer").appendChild(recommendationEl);
+}
+
+// Simple demo credentials
+const DEMO_USER = {
+  username: "user",
+  password: "1234"
+};
+
+function login() {
+  const inputUser = document.getElementById("username").value;
+  const inputPass = document.getElementById("password").value;
+
+  if (inputUser === DEMO_USER.username && inputPass === DEMO_USER.password) {
+    localStorage.setItem("loggedIn", "true");
+    loadApp();
+  } else {
+    alert("Invalid credentials. Try 'user' / '1234'");
+  }
+}
+
+function logout() {
+  localStorage.removeItem("loggedIn");
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginPage").style.display = "block";
+}
+
+// Show app if already logged in
+function loadApp() {
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  startCamera();
+  loadModels();
+}
+
+if (localStorage.getItem("loggedIn") === "true") {
+  loadApp();
+}
+
+
+
+
+    document.getElementById("detectEmotion").addEventListener("click", detectEmotion);
+
+    startCamera();
+    loadModels();
+  </script>
+</body>
+</html>
